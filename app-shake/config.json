@@ -1,0 +1,239 @@
+{
+  "type": "array",
+  "properties": [{
+    "key": "cluster",
+    "description": "cluster_description",
+    "type": "array",
+    "properties": [{
+      "key": "name",
+      "label": "name_label",
+      "description": "name_description",
+      "type": "string",
+      "default": "Redis Shack",
+      "required": "no"
+    }, {
+      "key": "description",
+      "label": "description_label",
+      "description": "description_description",
+      "type": "string",
+      "default": "",
+      "required": "no"
+    }, {
+      "key": "vxnet",
+      "label": "vxnet_label",
+      "description": "vxnet_description",
+      "type": "string",
+      "default": "",
+      "required": "yes"
+    }, {
+      "key": "node",
+      "label": "node_label",
+      "description": "node_description",
+      "type": "array",
+      "properties": [{
+        "key": "instance_class",
+        "label": "instance_class_label",
+        "description": "",
+        "type": "integer",
+        "default": 202,
+        "range": [101, 202, 203, 301],
+        "required": "yes"
+      }, {
+        "key": "cpu",
+        "label": "cpu_label",
+        "description": "cpu_description",
+        "type": "integer",
+        "default": 2,
+        "range": [1, 2, 4, 8],
+        "required": "yes"
+      }, {
+        "key": "memory",
+        "label": "memory_label",
+        "description": "memory_description",
+        "type": "integer",
+        "default": 2048,
+        "range": [1024, 2048, 4096, 8192], 
+        "required": "yes"
+      }]
+    }]
+  }, 
+  { "key": "env",
+    "description": "redis-shake env",
+    "type": "array",
+    "properties": [{
+          "key": "parallel",
+          "label": "parallel",
+          "description": "parallel_description",
+          "required": "no",
+          "type": "integer",
+          "default": 32,
+          "max": 256,
+          "min": 1
+        }, {
+          "key": "source.type",
+          "label": "source.type",
+          "description": "source.type_description",
+          "required": "yes",
+          "default": "standalone",
+          "range": ["standalone", "cluster"],
+          "type": "string"
+        }, {
+          "key": "source.address",
+          "label": "source.address",
+          "description": "source.address_description",
+          "required": "yes",
+          "default": "127.0.0.1:6379",
+          "type": "string"
+        }, {
+          "key": "source.password_raw",
+          "label": "source.password_raw",
+          "description": "source.password_raw_description",
+          "required": "no",
+          "type": "password",
+          "default": "",
+          "pattern": "^([a-zA-Z0-9!@#$%^&*()./;]{6,}|)$"
+        }, {
+          "key": "target.type",
+          "label": "target.type",
+          "description": "target.type_description",
+          "required": "yes",
+          "default": "standalone",
+          "range": ["standalone", "cluster"],
+          "type": "string"
+        }, { 
+          "key": "target.address",
+          "label": "target.address",
+          "description": "target.address_description",
+          "required": "yes",
+          "default": "127.0.0.1:6379",
+          "type": "string" 
+        }, {
+          "key": "target.password_raw",
+          "label": "target.password_raw",
+          "description": "target.password_raw_description",
+          "required": "no",
+          "type": "password",
+          "default": "",
+          "pattern": "^([a-zA-Z0-9!@#$%^&*()./;]{6,}|)$"
+        }, {
+          "key": "fake_time",
+          "label": "fake_time",
+          "description": "fake_time_description",
+          "required": "no",
+          "default": "",
+          "type": "string" 
+        }, {
+          "key": "key_exists",
+          "label": "key_exists",
+          "description": "key_exists_description",
+          "required": "no",
+          "default": "rewrite",
+          "range": ["rewrite", "none", "ignore"],
+          "type": "string" 
+        }, {
+          "key": "filter.db.whitelist",
+          "label": "filter.db.whitelist",
+          "description": "filter.db.whitelist_description",
+          "required": "no",
+          "default": "",
+          "type": "string" 
+        }, {
+          "key": "filter.db.blacklist",
+          "label": "filter.db.blacklist",
+          "description": "filter.db.blacklist_description",
+          "required": "no",
+          "default": "",
+          "type": "string" 
+        }, { 
+          "key": "filter.key.whitelist",
+          "label": "filter.key.whitelist",
+          "description": "filter.key.whitelist_description",
+          "required": "no",
+          "default": "",
+          "type": "string" 
+        }, {
+          "key": "filter.key.blacklist",
+          "label": "filter.key.blacklist",
+          "description": "filter.key.blacklist_description",
+          "required": "no",
+          "default": "",
+          "type": "string"
+        }, { 
+          "key": "filter.slot",
+          "label": "filter.slot",
+          "description": "filter.slot_description",
+          "required": "no",
+          "default": "",
+          "type": "string"
+        }, {
+          "key": "filter.lua",
+          "label": "filter.lua",
+          "description": "filter.lua_description",
+          "required": "no",
+          "default": "false",
+          "range": ["true", "false"],
+          "type": "string"
+        }, { 
+          "key": "big_key_threshold",
+          "label": "big_key_threshold",
+          "description": "big_key_threshold_description",
+          "required": "no",
+          "default": 524288000,
+          "type": "integer"
+        }, { 
+          "key": "keep_alive",
+          "label": "keep_alive",
+          "description": "keep_alive_description",
+          "required": "no",
+          "default": 0,
+          "type": "integer"
+        }, { 
+          "key": "qps",
+          "label": "qps",
+          "description": "qps_description",
+          "required": "no",
+          "default": 200000,
+          "type": "integer"
+        }, { 
+          "key": "resume_from_break_point",
+          "label": "resume_from_break_point",
+          "description": "resume_from_break_point_description",
+          "required": "no",
+          "range": ["true", "false"],
+          "default": "true",
+          "type": "string" 
+        }, { 
+          "key": "log.level",
+          "label": "log.level",
+          "description": "log.level_description",
+          "required": "no",
+          "default": "info",
+          "range": ["none", "error", "warn", "info", "debug"],
+          "type": "string"
+        }, {
+            "key": "web.console.enabled",
+            "label": "Enable web console",
+            "description": "enable or not for web console",
+            "type": "boolean",
+            "default": false,
+            "required": "no"
+        }, {
+            "key": "web.console.username",
+            "label": "Admin Username",
+            "description": "username of admin web console",
+            "type": "string",
+            "pattern": "^([a-z0-9.-]+)?$",
+            "default": "admin",
+            "required": "no"
+        }, {
+            "key": "web.console.password",
+            "label": "Admin Password",
+            "description": "password of admin web console",
+            "type": "password",
+            "pattern": "^\\w{0,24}$",
+            "default": "",
+            "required": "no"
+        }
+    ]
+  }]
+}

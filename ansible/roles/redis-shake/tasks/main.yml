@@ -1,0 +1,135 @@
+---
+
+- name: prepare tmp path
+  include_tasks: ../../utils/tasks/prepare-tmp-dir.yml
+
+- name: copy conf files
+  copy:
+    src: files/opt/app/
+    dest: /opt/app/
+    owner: root
+    group: svc
+    mode: preserve
+    directory_mode: u=rwx,g=rx,o=
+
+- name: install confd files
+  include_tasks: ../../utils/tasks/process-confd-files.yml
+
+- name: set vars
+  set_fact:
+    RedisShake_version: "{{ version | d(default_RedisShake_version) }}"
+
+- name: add the service group
+  group:
+    name: svc
+    state: present
+
+- name: add the service user
+  user:
+    name: shake
+    groups: svc
+    shell: /sbin/nologin
+    create_home: no
+    home: /data/redis-shake
+    append: yes
+    comment: "Service User"
+    state: present
+
+- name: create directories
+  file:
+    path: /opt/redis-shake/{{ RedisShake_version }}
+    state: directory
+
+- name: link binary dir
+  file:
+    src: "{{ RedisShake_version }}"
+    dest: /opt/redis-shake/current
+    state: link
+
+- name: prepare download directory
+  file:
+    path: "{{ role_path }}/files/tmp"
+    state: directory
+  delegate_to: localhost
+
+- name: check if package file exists
+  stat:
+    path: "{{ role_path }}/files/tmp/redis-shake-{{ RedisShake_version }}.tar.gz"
+  register: cached_file
+  run_once: True
+  delegate_to: localhost
+
+- name: download src
+  get_url:
+    url: "https://github.com/alibaba/RedisShake/archive/refs/tags/release-{{ RedisShake_version }}.tar.gz"
+    dest: "{{ role_path }}/files/tmp/redis-shake-{{ RedisShake_version }}.tar.gz"
+  delegate_to: localhost
+  run_once: True
+  when:
+  - cached_file.stat.exists == False
+
+- name: extract src
+  unarchive:
+    src: "{{ role_path }}/files/tmp/redis-shake-{{ RedisShake_version }}.tar.gz"
+    dest: "{{ role_path }}/files/tmp/"
+  delegate_to: localhost
+  run_once: True
+
+- name: make binaries redis-shake-{{ RedisShake_version }}
+  shell:
+    chdir: "{{ role_path }}/files/tmp/RedisShake-release-{{ RedisShake_version }}"
+    cmd: ./build.sh
+  delegate_to: localhost
+  run_once: True
+
+- name: install binaries
+  copy:
+    src: "{{ role_path }}/files/tmp/RedisShake-release-{{ RedisShake_version }}/bin/{{ file_name }}"
+    dest: /opt/redis-shake/current/
+    mode: preserve
+  loop:
+  - redis-shake.linux
+  - redis-shake.darwin
+  - redis-shake.windows
+  loop_control:
+    loop_var: file_name
+
+- name: install services
+  copy:
+    src: "{{ role_path }}/files/lib/systemd/system/"
+    dest: /lib/systemd/system/
+
+- name: disable services
+  systemd:
+    name: "{{ service_name }}"
+    enabled: no
+    state: stopped
+  loop:
+  - redis-shake
+  loop_control:
+    loop_var: service_name
+
+- name: mask services
+  systemd:
+    name: redis-shake
+    masked: yes
+  loop:
+  loop_control:
+    loop_var: service_name
+- name: add commands to PATH
+  copy:
+    dest: /etc/profile.d/redis-path.sh
+    content: 'PATH=$PATH:/opt/redis-shake/current'
+
+
+- name: copy config files
+  copy:
+    src: files/{{ path }}/
+    dest: /{{ path }}
+    owner: root
+    group: root
+    mode: u=rw,go=r
+  loop:
+    - etc
+  loop_control:
+    loop_var: path

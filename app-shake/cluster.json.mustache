@@ -1,0 +1,122 @@
+{
+  "name": {{cluster.name}},
+  "description": {{cluster.description}},
+  "vxnet": {{cluster.vxnet}},
+  "advanced_actions": ["change_vxnet"],
+  "backup_policy": "device",
+  "incremental_backup_supported": true,
+  "upgrade_policy": [],
+  "nodes": [{
+    "container": {
+      "type": "lxc",
+      "prefer_type": "lxc",
+      "sriov_nic": true,
+      "zone": "pek3",
+      "image": "img-rjk8s9u2"
+    },
+    "instance_class": {{cluster.node.instance_class}},
+    "count": 1,
+    "cpu": {{cluster.node.cpu}},
+    "memory": {{cluster.node.memory}},
+    "services": {
+      "start": {
+        "cmd": "appctl start"
+      },
+      "stop": {
+        "cmd": "appctl stop"
+      }
+    }
+  }],
+  "env": {
+    "log.level": {{env.log.level}},
+    "parallel": {{env.parallel}},
+    "source.type": {{env.source.type}},
+    "source.address": {{env.source.address}},
+    "source.password_raw": {{env.source.password_raw}},
+    "target.type": {{env.target.type}},
+    "target.address": {{env.target.address}},
+    "target.password_raw": {{env.target.password_raw}},
+    "fake_time": {{env.fake_time}},
+    "key_exists": {{env.key_exists}},
+    "filter.db.whitelist": {{env.filter.db.whitelist}},
+    "filter.db.blacklist": {{env.filter.db.blacklist}},
+    "filter.key.whitelist": {{env.filter.key.whitelist}},
+    "filter.key.blacklist": {{env.filter.key.blacklist}},
+    "filter.slot": {{env.filter.slot}},
+    "filter.lua": {{env.filter.lua}},
+    "big_key_threshold": {{env.big_key_threshold}},
+    "keep_alive": {{env.keep_alive}},
+    "qps": {{env.qps}},
+    "resume_from_break_point": {{env.resume_from_break_point}},
+    "web.console.enabled": {{env.web.console.enabled}},
+    "web.console.username": {{env.web.console.username}},
+    "web.console.password": {{env.web.console.password}}
+  },
+  "monitor": {
+    "enable": true,
+    "cmd": "appctl measure",
+    "items": {
+        "Status": {
+            "unit": "",
+            "value_type": "str",
+            "statistics_type": "latest",
+            "enums": ["full","incr"]
+        },
+        "Delay" : {
+            "unit" : "COUNTS/S",
+            "value_type" : "int",
+            "statistics_type" : "max",
+            "scale_factor_when_display" : 1
+        },
+        "ProcessingCmd": {
+            "unit" : "Times",
+            "value_type" : "int",
+            "statistics_type" : "delta",
+            "scale_factor_when_display" : 1 
+        },
+        "PullCmd": {
+            "unit" : "Times",
+            "value_type" : "int",
+            "statistics_type" : "delta",
+            "scale_factor_when_display" : 1 
+        },
+        "PushCmd": {
+            "unit" : "Times",
+            "value_type" : "int",
+            "statistics_type" : "delta",
+            "scale_factor_when_display" : 1 
+        },
+        "SuccessCmd": {
+            "unit" : "Times",
+            "value_type" : "int",
+            "statistics_type" : "delta",
+            "scale_factor_when_display" : 1 
+        },
+        "FailCmd": {
+            "unit" : "Times",
+            "value_type" : "int",
+            "statistics_type" : "delta",
+            "scale_factor_when_display" : 1 
+        }
+    },
+    "groups": {"sync-qps": ["ProcessingCmd", "PullCmd", "PushCmd", "SuccessCmd"]},
+    "display": ["Status", "sync-qps", "Delay", "FailCmd"],
+    "alarm": ["Status", "Delay"]
+  },
+  "health_check": {
+    "enable": true,
+    "interval_sec": 60,
+    "timeout_sec": 10,
+    "action_timeout_sec": 30,
+    "healthy_threshold": 2,
+    "unhealthy_threshold": 2,
+    "check_cmd": "appctl check",
+    "action_cmd": "appctl revive"
+  },
+  "endpoints": {
+    "client": {
+      "port": 80,
+      "protocol": "tcp"
+    }
+  }
+}

@@ -1,0 +1,47 @@
+flush /opt/app/conf/redis-shake/redis-shake.conf << REDIS_SHAKE_CONF_EOF
+conf.version = 1
+id = redis-shake
+log.file = /data/redis-shake/logs/redis-shake.log
+log.level = {{ getv "/env/log.level" }}
+pid_path = /data/redis-shake
+system_profile = 9310
+http_profile = 9320
+parallel = {{ getv "/env/parallel" }}
+source.type = {{ getv "/env/source.type" }}
+source.password_raw = {{ getv "/env/source.password_raw" }}
+source.auth_type = auth
+source.tls_enable = false
+source.rdb.input =
+source.rdb.parallel = 0
+source.rdb.special_cloud =
+target.type = {{ getv "/env/target.type" }}
+target.password_raw = {{ getv "/env/target.password_raw" }}
+target.auth_type = auth
+target.db = -1
+target.dbmap =
+target.tls_enable = false
+target.rdb.output = local_dump
+target.version =
+fake_time = {{ getv "/env/fake_time" }}
+key_exists = none
+filter.db.whitelist = {{ getv "/env/filter.db.whitelist" }}
+filter.db.blacklist = {{ getv "/env/filter.db.blacklist" }}
+filter.key.whitelist = {{ getv "/env/filter.key.whitelist" }}
+filter.key.blacklist = {{ getv "/env/filter.key.blacklist" }}
+filter.slot = {{ getv "/env/filter.slot" }}
+filter.lua = {{ getv "/env/filter.lua" }}
+big_key_threshold = {{ getv "/env/big_key_threshold" }}
+metric = true
+metric.print_log = false
+sender.size = 104857600
+sender.count = 4095
+sender.delay_channel_size = 65535
+keep_alive = {{ getv "/env/keep_alive" }}
+scan.key_number = 50
+scan.special_cloud =
+scan.key_file =
+qps = {{ getv "/env/qps" }}
+resume_from_break_point = {{ getv "/env/resume_from_break_point" }}
+replace_hash_tag = false
+REDIS_SHAKE_CONF_EOF
+

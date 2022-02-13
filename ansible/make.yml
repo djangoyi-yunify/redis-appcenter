@@ -46,3 +46,11 @@
     - redis-cluster
     loop_control:
       loop_var: name
+
+- name: redis shake
+  hosts: redis-shake
+  tasks:
+  - include_role:
+      name: "redis-shake"
+    vars:
+      RedisShake_version: "v2.1.1-20210903"

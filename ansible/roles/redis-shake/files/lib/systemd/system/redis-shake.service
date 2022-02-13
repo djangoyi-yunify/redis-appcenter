@@ -1,0 +1,23 @@
+[Unit]
+Description=RedisShake Server
+After=network.target
+
+[Service]
+User=shake
+Group=svc
+Type=simple
+RuntimeDirectory=sh
+PIDFile=/data/redis-shake/redis-shake.pid
+ExecStart=/opt/redis-shake/current/redis-shake.linux -type sync -conf /data/redis-shake/redis-shake.conf
+ExecStop=/bin/kill -15 $MAINPID || /bin/kill -9 $MAINPID
+Restart=always
+
+LimitNOFILE=infinity
+
+CapabilityBoundingSet=CAP_NET_ADMIN
+AmbientCapabilities=CAP_NET_ADMIN
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
+

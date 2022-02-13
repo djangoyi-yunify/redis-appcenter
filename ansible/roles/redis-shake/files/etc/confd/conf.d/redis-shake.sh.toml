@@ -1,0 +1,9 @@
+[template]
+src = "redis-shake.sh.tmpl"
+dest = "/opt/app/bin/tmpl/redis-shake.sh"
+mode = "0700"
+keys = [
+  "/",
+]
+reload_cmd = "/opt/app/bin/tmpl/redis-shake.sh; appctl reload redis-shake"
+
