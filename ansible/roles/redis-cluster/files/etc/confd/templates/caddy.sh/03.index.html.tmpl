@@ -78,6 +78,9 @@ flush /opt/app/conf/caddy/index.html << HTML_EOF
         <li><span class="sub-1">⊞</span><a href="./redis/logs/">logs/</a></li>
         <li><span class="sub-1">⊡</span><a href="./redis/dump.rdb">dump.rdb</a></li>
         <li><span class="sub-1">⊡</span><a href="./redis/appendonly.aof">appendonly.aof</a></li>
+        <li><span class="sub-1">⊡</span><a href="./redis/bigkey.log">bigkey.log</a></li>
+        <li><span class="sub-1">⊡</span><a href="./redis/hotkey.log">hotkey.log</a></li>
+        <li><span class="sub-1">⊡</span><a href="./redis/slowlog.log">slowlog.log</a></li>
         {{- else }}
         <li><span>⊞</span><a href="//{{ . }}/">{{ . }}</a></li>
         {{- end }}

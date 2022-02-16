@@ -14,6 +14,9 @@ CLUSTER_STATE_NOT_OK=223
 LOAD_ACLFILE_ERR=224
 ACL_SWITCH_ERR=225
 ACL_MANAGE_ERR=226
+HOT_KEYS_EXECUTING_ERR=227
+BIG_KEYS_EXECUTING_ERR=228
+HOT_KEYS_MAXMEMORY_POLICY_ERR=229
 
 ROOT_CONF_DIR=/opt/app/conf/redis-cluster
 CHANGED_CONFIG_FILE=$ROOT_CONF_DIR/redis.changed.conf
@@ -25,6 +28,11 @@ RUNTIME_CONFIG_FILE=$REDIS_DIR/redis.conf
 RUNTIME_ACL_FILE=$REDIS_DIR/aclfile.conf
 NODE_CONF_FILE=$REDIS_DIR/nodes-6379.conf
 ACL_CLEAR=$REDIS_DIR/acl.clear
+SLOWLOG_LOG_FILE=$REDIS_DIR/slowlog.log
+HOT_KEYS_LOG_FILE=$REDIS_DIR/hotkey.log
+HOT_KEYS_PID_FILE=$REDIS_DIR/runhotkey.pid
+BIG_KEYS_LOG_FILE=$REDIS_DIR/bigkey.log
+BIG_KEYS_PID_FILE=$REDIS_DIR/runbigkey.pid
 
 execute() {
   local cmd=$1; log --debug "Executing command ..."
@@ -39,10 +47,10 @@ execute() {
 }
 
 initNode() {
-  mkdir -p /data/redis/{logs,tls}
-  touch /data/redis/tls/{ca.crt,redis.crt,redis.dh,redis.key}
-  touch $RUNTIME_ACL_FILE
-  chown -R redis.svc /data/redis
+  mkdir -p $REDIS_DIR/{logs,tls}
+  touch $REDIS_DIR/tls/{ca.crt,redis.crt,redis.dh,redis.key}
+  touch $RUNTIME_ACL_FILE $SLOWLOG_LOG_FILE $HOT_KEYS_LOG_FILE $HOT_KEYS_PID_FILE $BIG_KEYS_LOG_FILE $BIG_KEYS_PID_FILE
+  chown -R redis.svc $REDIS_DIR
   local htmlFile=/data/index.html; [ -e "$htmlFile" ] || ln -s /opt/app/conf/caddy/index.html $htmlFile
   _initNode
 }
@@ -763,3 +771,97 @@ aclManage() {
   log "acl $command end"
 }
 
+checkPidFile() {
+  local pid
+  [[ ! -e "$1" ]] && return
+  pid="$(head -1 $1)"
+  [[ -z "$pid" ]] && return
+  if ps -p $pid > /dev/null ; then
+    log "$pid process existence"
+    return 1
+  fi
+}
+
+getSlowlog() {
+  log "Notice getSlowlog"
+  isNodeInitialized || return
+  local slowlogRaw slowlogList retCode=0 config args=$@
+  [[ "$MY_IP" != "$(echo $args | jq -r .node_id)" ]] && return
+  log "Start getSlowlog"
+  config="$(getRuntimeNameOfCmd "CONFIG")"
+  [[ $(runRedisCmd $config get slowlog-log-slower-than | sed "1d") == "-1" ]] && {
+    echo '{ "labels": ["ERROR"], "data": [[ "未开启慢查询日志, 请调整配置参数\"slowlog-log-slower-than\"与\"slowlog-max-len\"选项" ]] }'
+    return 0
+  }
+  slowlogRaw=$(runRedisCmd slowlog get)
+  rotate $SLOWLOG_LOG_FILE
+  echo "$slowlogRaw" > $SLOWLOG_LOG_FILE
+  slowlogList=$( echo "$slowlogRaw" | awk '{if($0==""){print}else{printf $0" "}}' | awk 'NR<=10{
+      cmds=$4
+      for(i=5;i<NF;i+=1){ cmds=cmds" "$i }
+      print sprintf("[\"%s\", \"%s\", \"%s\", \"%s\"]", strftime("%Y-%m-%d %H:%M:%S", $2) , $3, gensub(/"/, "\\\"", "G", cmds), $NF)
+    }' | paste -sd "," )
+  jqData="$(echo "[$slowlogList]" | jq -c '{"labels":["time","execution-time", "cmds", "client"],"data":.}')"
+  echo "$jqData"
+  log "End getSlowlog $slowlogList"
+}
+
+runBigkeys() {
+  local pid sleeptime args=$@
+  log "Notice runBigkeys"
+  sleeptime="$(echo $args |jq -r .sleep)"
+  isNodeInitialized || return
+  [[ "$MY_IP" != "$(echo $args |jq -r .node_id)" ]] && return
+  log "Start runBigkeys"
+  if ! checkPidFile $HOT_KEYS_PID_FILE; then return $HOT_KEYS_EXECUTING_ERR; fi
+  if ! checkPidFile $BIG_KEYS_PID_FILE; then return $BIG_KEYS_EXECUTING_ERR; fi
+  rotate $BIG_KEYS_LOG_FILE 
+  log "runRedisCmd --timeout 3600 --bigkeys -i \"$sleeptime\""
+  runRedisCmd --timeout 3600 --bigkeys -i "$sleeptime" &> $BIG_KEYS_LOG_FILE &
+  pid=$!
+  log "runHotkeys pid:$pid"
+  echo -n "$pid" > $HOT_KEYS_PID_FILE
+}
+
+getBigkeys() {
+  local data jqData config args=$@
+  log "Notice getBigkeys"
+  [[ "$MY_IP" != "$(echo $args |jq -r .node_id)" ]] && return
+  [[ ! -e "$BIG_KEYS_LOG_FILE" ]] && return
+  data="[$( cat $BIG_KEYS_LOG_FILE | sed "s/'//g" | awk '/\[[0-9\.]{5,6}%\] Biggest /{print sprintf("[%s,\"%s\",\"%s %s\"]", $7, $3, $9, $10)}' | paste -sd ,)]"
+  jqData=$(echo "$data" | jq -c '{"labels":["key", "KeyType", "Size"],"data":.}')
+  echo "$jqData"
+  log "End getBigkeys [$jqData]"
+}
+
+runHotkeys() {
+  local sleeptime args=$@ pid
+  log "Notice runHotKeys"
+  [[ "$MY_IP" != "$(echo $args |jq -r .node_id)" ]] && return
+  sleeptime="$(echo $args |jq -r .sleep)"
+  isNodeInitialized || return
+  log "Start runHotKeys"
+  config="$(getRuntimeNameOfCmd "CONFIG")"
+  [[ " volatile-lfu allkeys-lfu " == *" $(runRedisCmd $config get maxmemory-policy | sed -n "2p") "* ]] || {
+    return $HOT_KEYS_MAXMEMORY_POLICY_ERR
+  }
+  if ! checkPidFile $HOT_KEYS_PID_FILE; then return $HOT_KEYS_EXECUTING_ERR; fi
+  if ! checkPidFile $BIG_KEYS_PID_FILE; then return $BIG_KEYS_EXECUTING_ERR; fi
+  rotate $HOT_KEYS_LOG_FILE
+  runRedisCmd --timeout 3600 --hotkeys -i "$sleeptime" &> $HOT_KEYS_LOG_FILE &
+  pid=$!
+  log "runHotkeys pid:$pid"
+  echo -n "$pid" > $HOT_KEYS_PID_FILE
+}
+
+getHotkeys() {
+  local jqData data args=$@
+  log "Notice getHotkeys"
+  [[ "$MY_IP" != "$(echo $args |jq -r .node_id)" ]] && return
+  log "Run Notice getHotkeys"
+  [[ ! -e "$HOT_KEYS_LOG_FILE" ]] && return
+  data="[$(cat $HOT_KEYS_LOG_FILE | sed '0,/---- summary/d' | awk '/^hot key found with counter/ && n< 10{print sprintf("[%s,\"%s\"]", $8, $6);n++}' | paste -sd ",")]"
+  jqData="$(echo "$data" |jq -c '{"labels":["Keyname", "Counter"],"data":.}')"
+  log "End getHotkeys $jqData"
+  echo "$jqData"
+}

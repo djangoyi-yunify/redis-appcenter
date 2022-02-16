@@ -3,14 +3,7 @@
     "description": {{cluster.description}},
     "multi_zone_policy": "round_robin",
     "vxnet": {{cluster.vxnet}},
-    "upgrade_policy": [
-     "appv-79rlu7jt",
-     "appv-1pbmp78g",
-     "appv-tqzrokkb",
-     "appv-9yvinzz0",
-     "appv-okxhok17",
-     "appv-pjxqcdm1"
-    ],    
+    "upgrade_policy": [],    
     "upgrading_policy": "parallel",
     "nodes": [{
         "role": "master",
@@ -19,7 +12,7 @@
             "prefer_type": "lxc",
             "zone": "pek3",
             "sriov_nic": true,
-            "image": "img-7brfnln2"
+            "image": "img-epfr1bvu"
         },
         "instance_class": {{cluster.master.instance_class}},
         "count": {{cluster.master.count}},
@@ -63,6 +56,48 @@
                     "cmd": {{service_params.cmd}},
                     "params": {{service_params.params}},
                     "timeout": {{service_params.timeout}}
+                }
+            },
+            "runHotkeys": {
+                "type": "custom",
+                "cmd": "appctl runHotkeys",
+                "timeout": 120,
+                "service_params": {
+                    "sleep": {{service_params.sleeptime}},
+                    "node_id": {{service_params.node_id}}
+                }
+            },
+            "getHotkeys" : {
+                "type": "custom",
+                "cmd" : "appctl getHotkeys",
+                "timeout": 120,
+                "service_params": {
+                    "node_id": {{service_params.node_id}}
+                }
+            },
+            "runBigkeys": {
+                "type": "custom",
+                "cmd": "appctl runBigkeys",
+                "timeout": 120,
+                "service_params": {
+                    "sleep": {{service_params.sleeptime}},
+                    "node_id": {{service_params.node_id}}
+                }
+            },
+            "getBigkeys" : {
+                "type": "custom",
+                "cmd" : "appctl getBigkeys",
+                "timeout": 120,
+                "service_params": {
+                    "node_id": {{service_params.node_id}}
+                }
+            },
+            "getSlowlog" : {
+                "type": "custom",
+                "cmd" : "appctl getSlowlog",
+                "timeout": 120,
+                "service_params": {
+                    "node_id": {{service_params.node_id}}
                 }
             },
             "add_user": {
@@ -484,10 +519,19 @@
     },
     "display_tabs" : {
         "roles" : {
-        "cmd" : "appctl getRedisRoles"
+            "cmd" : "appctl getRedisRoles"
         },
         "ACL_List" : {
-        "cmd" : "appctl getUserList"
+            "cmd" : "appctl getUserList"
+        },
+        "Hotkeys" : {
+            "cmd" : "echo"
+        },
+        "Slowlog" : {
+            "cmd" : "echo"
+        },
+        "Bigkeys" : {
+            "cmd" : "echo"
         }
     }
 }

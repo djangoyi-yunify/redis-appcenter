@@ -86,81 +86,84 @@
                 "required": "yes"
             }]
         }]
-    },
-    {
+    }, {
         "key": "service_params",
         "description": "Custom service configuration properties",
         "type": "array",
-        "properties": [
-            {
-                "key": "cmd",
-                "label": "command",
-                "description": "The common for master node",
-                "type": "string",
-                "default": "FLUSHDB",
-                "range": [
-                  "FLUSHDB",
-                  "FLUSHALL",
-                  "BGSAVE"
-                ],
-                "required": "yes"
-              },
-              {
-                "key": "params",
-                "label": "params",
-                "description": "The params for flush commands",
-                "type": "string",
-                "default": "ASYNC", 
-                "range": [
-                  "",
-                  "ASYNC"
-                ],
-                "required": "no"
-              },
-              {
-                "key": "timeout",
-                "label": "timeout",
-                "description": "The timeout for flush commands",
-                "type": "integer",
-                "default": 5, 
-                "min":5,
-                "required": "yes"
-              },
-              {
-                "key": "username",
-                "label": "username",
-                "description": "ACL User Name",
-                "type": "string",
-                "default": "", 
-                "pattern": "^(?!default$)([a-zA-Z0-9.-_]{2,26}|)$",
-                "required": "yes"
-              }, {
-                "key": "passwd",
-                "label": "passwd",
-                "description": "Require clients to issue \"AUTH <USERNAME> <PASSWORD>\" before processing any other commands.",  
-                "default": "",
-                "type": "password",
-                "pattern": "^([a-zA-Z0-9!@#$%^&*()./;]{6,}|)$",
-                "required": "yes"
-              }, {
-                "key": "switch",
-                "label": "switch",
-                "description": "Enable the user: it is possible to authenticate as this user.",
-                "type": "string",
-                "range": ["on", "off"],
-                "default": "on", 
-                "required": "no"
-              }, {
-                "key": "rules",
-                "label": "rules",
-                "description": "For example:",
-                "type": "string",
-                "default": "+@all", 
-                "pattern": "^(?!(.* )?(on|off|nopass|resetpass|[#<>!].*)( .*)?$)(.*)$",
-                "multiline": true,
-                "required": "yes"
-              }
-
+        "properties": [{
+            "key": "cmd",
+            "label": "command",
+            "description": "The common for master node",
+            "type": "string",
+            "default": "FLUSHDB",
+            "range": [ "FLUSHDB", "FLUSHALL", "BGSAVE" ],
+            "required": "yes"
+          }, {
+            "key": "params",
+            "label": "params",
+            "description": "The params for flush commands",
+            "type": "string",
+            "default": "ASYNC", 
+            "range": [ "", "ASYNC" ],
+            "required": "no"
+          }, {
+            "key": "sleeptime",
+            "label": "sleeptime",
+            "type": "string",
+            "description": "Custom service configuration properties",
+            "default": "0.1", 
+            "pattern": ".",
+            "required": "no"
+          }, {
+            "key": "node_id",
+            "label": "node_id",
+            "description": "node_id_description",
+            "type": "string",
+            "pattern": ".",
+            "default": "cli-", 
+            "required": "no"
+          }, {
+            "key": "timeout",
+            "label": "timeout",
+            "description": "The timeout for flush commands",
+            "type": "integer",
+            "default": 5, 
+            "min":5,
+            "required": "yes"
+          }, {
+            "key": "username",
+            "label": "username",
+            "description": "ACL User Name",
+            "type": "string",
+            "default": "", 
+            "pattern": "^(?!default$)([a-zA-Z0-9.-_]{2,26}|)$",
+            "required": "yes"
+          }, {
+            "key": "passwd",
+            "label": "passwd",
+            "description": "Require clients to issue \"AUTH <USERNAME> <PASSWORD>\" before processing any other commands.",  
+            "default": "",
+            "type": "password",
+            "pattern": "^([a-zA-Z0-9!@#$%^&*()./;]{6,}|)$",
+            "required": "yes"
+          }, {
+            "key": "switch",
+            "label": "switch",
+            "description": "Enable the user: it is possible to authenticate as this user.",
+            "type": "string",
+            "range": ["on", "off"],
+            "default": "on", 
+            "required": "no"
+          }, {
+            "key": "rules",
+            "label": "rules",
+            "description": "For example:",
+            "type": "string",
+            "default": "+@all", 
+            "pattern": "^(?!(.* )?(on|off|nopass|resetpass|[#<>!].*)( .*)?$)(.*)$",
+            "multiline": true,
+            "required": "yes"
+          }
         ]
       }, 
     {
@@ -314,8 +317,8 @@
             "label": "maxmemory-policy",
             "description": "The eviction policy to remove keys when the memory limit is reached.",
             "type": "string",
-            "default": "volatile-lru",
-            "range": ["volatile-lru", "allkeys-lru", "volatile-random", "allkeys-random", "volatile-ttl", "noeviction"],
+            "default": "volatile-lfu",
+            "range": ["volatile-lfu", "allkeys-lfu", "volatile-lru", "allkeys-lru", "volatile-random", "allkeys-random", "volatile-ttl", "noeviction"],
             "required": "no"
         }, {
             "key": "maxmemory-samples",
@@ -386,7 +389,7 @@
             "label": "slowlog-log-slower-than",
             "description": "It logs queries that exceeded a specified execution time.",
             "type": "integer",
-            "default": -1,
+            "default": 10,
             "required": "no"
         }, {
             "key": "slowlog-max-len",
