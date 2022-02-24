@@ -820,7 +820,7 @@ runBigkeys() {
   runRedisCmd --timeout 3600 --bigkeys -i "$sleeptime" &> $BIG_KEYS_LOG_FILE &
   pid=$!
   log "runHotkeys pid:$pid"
-  echo -n "$pid" > $HOT_KEYS_PID_FILE
+  echo -n "$pid" > $BIG_KEYS_PID_FILE
 }
 
 getBigkeys() {
@@ -860,8 +860,10 @@ getHotkeys() {
   [[ "$MY_IP" != "$(echo $args |jq -r .node_id)" ]] && return
   log "Run Notice getHotkeys"
   [[ ! -e "$HOT_KEYS_LOG_FILE" ]] && return
-  data="[$(cat $HOT_KEYS_LOG_FILE | sed '0,/---- summary/d' | awk '/^hot key found with counter/ && n< 10{print sprintf("[%s,\"%s\"]", $8, $6);n++}' | paste -sd ",")]"
-  jqData="$(echo "$data" |jq -c '{"labels":["Keyname", "Counter"],"data":.}')"
+  for info in $(sed '0,/---- summary/d' $HOT_KEYS_LOG_FILE | awk '/^hot key found with counter/ && n< 10{print $6"/"gensub(/^"|"$/, "", "G", $8);n++}'); do
+    data="$data[\"${info#*/}\",\"$(runRedisCmd type ${info#*/})\",\"${info%/*}\"],"
+  done
+  jqData="$(echo "[${data%,}]" | jq -c '{"labels":["Keyname", "KeyType", "Counter"],"data":.}')"
   log "End getHotkeys $jqData"
   echo "$jqData"
 }
