@@ -26,15 +26,6 @@
             "default": "",
             "required": "yes"
         }, {
-            "key": "resource_group",
-            "label": "Resource Configuration",
-            "description": ["Multithreaded Prod: 380000QPS", "Single Threaded Prod: 180000QPS", "Multithreaded Test: 180000QPS", "Single Threaded Test: 60000QPS"],
-            "type": "string",
-            "customizable": false,
-            "is_node": true,
-            "default": "MultithreadedProd",
-            "range": ["MultithreadedProd", "SingleThreadedProd","MultithreadedTest", "SingleThreadedTest"]
-        }, {
             "key": "master",
             "label": "Master",
             "description": "Redis master node",
@@ -44,18 +35,16 @@
                 "label": "Instance Class",
                 "description": "",
                 "type": "integer",
-                "default": 202,
-                "resource_group": [202, 202, 101, 101],
-                "range": [101, 202, 301],
+                "default": 203,
+                "range": [101, 203, 301],
                 "required": "yes"
             }, {
                 "key": "cpu",
                 "label": "CPU",
                 "description": "Cpus of each node",
                 "type": "integer",
-                "default": 8,
-                "range": [2, 8, 16, 32, 64],
-                "resource_group": [8,2,8,2],
+                "default": 2,
+                "range": [1, 2, 4, 8, 16],
                 "required": "yes"
             }, {
                 "key": "memory",
@@ -63,7 +52,6 @@
                 "description": "Memory of each node.",
                 "type": "integer",
                 "default": 8192,
-                "resource_group": [8192, 4096, 8192, 2048],
                 "range": [1024, 2048, 4096, 6144, 8192, 16384, 32768, 65536, 131072],
                 "required": "yes"
             }, {
@@ -81,8 +69,14 @@
                 "description": "The replica number for each master",
                 "type": "integer",
                 "default": 1,
-                "min": 0,
-                "max": 5,
+                "required": "yes"
+            }, {
+                "key": "volume_size",
+                "label": "Volume Size",
+                "description": "The volume size for each instance",
+                "type": "integer",
+                "default": 10,
+                "min": 10,
                 "required": "yes"
             }]
         }]
@@ -104,8 +98,7 @@
                   "BGSAVE"
                 ],
                 "required": "yes"
-              },
-              {
+              }, {
                 "key": "params",
                 "label": "params",
                 "description": "The params for flush commands",
@@ -116,8 +109,7 @@
                   "ASYNC"
                 ],
                 "required": "no"
-              },
-              {
+              }, {
                 "key": "timeout",
                 "label": "timeout",
                 "description": "The timeout for flush commands",
@@ -125,8 +117,7 @@
                 "default": 5, 
                 "min":5,
                 "required": "yes"
-              },
-              {
+              }, {
                 "key": "username",
                 "label": "username",
                 "description": "ACL User Name",
@@ -209,6 +200,22 @@
             "default": 0,
             "required": "no",
             "range": [0,1]
+        }, {
+            "key": "io-threads-do-reads",
+            "label": "io-threads-do-reads-label",
+            "description": "io-threads-do-reads-description",
+            "type": "string",
+            "default": "auto",
+            "range": ["yes", "auto", "no"],
+            "required": "yes"
+        }, {
+            "key": "io-threads",
+            "label": "io-threads-label",
+            "description": "io-threads-description",
+            "type": "integer",
+            "default": 0, 
+            "min":0,
+            "required": "yes"
         }, {
             "key": "appctl.maxmemory.percent",
             "label": "maxmemory-percent",
