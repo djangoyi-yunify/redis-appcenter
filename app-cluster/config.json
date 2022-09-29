@@ -80,8 +80,7 @@
                 "required": "yes"
             }]
         }]
-    },
-    {
+    }, {
         "key": "service_params",
         "description": "Custom service configuration properties",
         "type": "array",
@@ -153,8 +152,7 @@
               }
 
         ]
-      }, 
-    {
+    }, {
         "key": "env",
         "description": "Redis service properties",
         "type": "array",
