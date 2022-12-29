@@ -1,5 +1,5 @@
 {
-  "patch_policy": ["", "appp-mw2m1pu7", "appp-8m8hgjd6"],
+  "patch_policy": ["appp-vko6kk0h"],
   "patch_nodes": [{
     "container": {
         "snapshot": "ss-ytwhal6w",
@@ -10,7 +10,7 @@
       "mount_point": "/upgrade",
       "mount_options": "defaults,noatime",
       "filesystem": "ext4",
-      "cmd": "/upgrade/opt/app/bin/node/upgrade.sh"
+      "cmd": "echo"
     }],
     "rollback": [{
       "mount_role": "",
